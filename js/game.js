@@ -2,6 +2,99 @@
     const heroVideo = document.getElementById('heroVideo');
     heroVideo.playbackRate = 0.5;
 
+    // 1b. Page-specific music. Both tracks ship with the project.
+    // Browsers can reject autoplay before the first click, so offer a button
+    // and retry after real pointer/keyboard input without altering preferences.
+    const menuMusic = document.getElementById('menuMusic');
+    const gameMusic = document.getElementById('gameMusic');
+    const MUSIC_PREF_KEY = 'sonions.music.enabled.v1';
+    const MASTER_VOLUME = 0.32;
+    let musicEnabled = true;
+    try { musicEnabled = localStorage.getItem(MUSIC_PREF_KEY) !== 'false'; } catch (_) {}
+    let musicIsPlaying = false;
+    let musicFadeFrame = 0;
+    let musicFadeVersion = 0;
+    let musicScene = 'landing';
+    menuMusic.volume = 0;
+    gameMusic.volume = 0;
+
+    function updateMusicButtons() {
+      document.querySelectorAll('.music-toggle').forEach(button => {
+        const status = !musicEnabled ? 'Music off' : (musicIsPlaying ? 'Music on' : 'Enable music');
+        button.querySelector('.music-status').textContent = status;
+        button.setAttribute('aria-label', !musicEnabled ? 'Turn background music on' : (musicIsPlaying ? 'Turn background music off' : 'Enable background music'));
+        button.setAttribute('aria-pressed', String(musicEnabled && musicIsPlaying));
+        button.classList.toggle('music-off', !musicEnabled);
+        button.classList.toggle('music-on', musicEnabled && musicIsPlaying);
+        button.title = status;
+      });
+    }
+
+    function switchMusic(scene, duration = 980) {
+      musicScene = scene;
+      cancelAnimationFrame(musicFadeFrame);
+      const version = ++musicFadeVersion;
+      if (!musicEnabled) {
+        menuMusic.pause(); gameMusic.pause();
+        menuMusic.volume = 0; gameMusic.volume = 0;
+        musicIsPlaying = false;
+        updateMusicButtons();
+        return;
+      }
+      const incoming = scene === 'game' ? gameMusic : menuMusic;
+      const outgoing = incoming === menuMusic ? gameMusic : menuMusic;
+      const startIncoming = incoming.volume;
+      const startOutgoing = outgoing.volume;
+      const startedAt = performance.now();
+      // Start within the same user gesture when called by navigation.
+      const playAttempt = incoming.play();
+      if (playAttempt && typeof playAttempt.then === 'function') {
+        playAttempt.then(() => {
+          if (version !== musicFadeVersion) return;
+          musicIsPlaying = true;
+          updateMusicButtons();
+        }).catch(() => {
+          if (version !== musicFadeVersion) return;
+          musicIsPlaying = false;
+          updateMusicButtons();
+        });
+      }
+      function animateFade(now) {
+        if (version !== musicFadeVersion) return;
+        const p = Math.min(1, (now - startedAt) / duration);
+        const eased = p * p * (3 - 2*p);
+        incoming.volume = Math.min(1, Math.max(0, startIncoming + (MASTER_VOLUME-startIncoming)*eased));
+        outgoing.volume = Math.min(1, Math.max(0, startOutgoing*(1-eased)));
+        if (p < 1) musicFadeFrame = requestAnimationFrame(animateFade);
+        else { outgoing.pause(); outgoing.volume = 0; }
+      }
+      musicFadeFrame = requestAnimationFrame(animateFade);
+    }
+
+    function toggleMusic() {
+      // First explicit press is an enable action if autoplay was blocked.
+      if (musicEnabled && !musicIsPlaying) {
+        switchMusic(musicScene, 480);
+        return;
+      }
+      musicEnabled = !musicEnabled;
+      try { localStorage.setItem(MUSIC_PREF_KEY, String(musicEnabled)); } catch (_) {}
+      switchMusic(musicScene, 480);
+    }
+
+    function maybeUnlockAudio(event) {
+      if (!musicEnabled || musicIsPlaying) return;
+      // The dedicated toggle manages its own click and must not double-toggle.
+      if (event.target && event.target.closest && event.target.closest('.music-toggle')) return;
+      switchMusic(musicScene, 500);
+    }
+    document.addEventListener('pointerdown', maybeUnlockAudio, {capture:true, passive:true});
+    document.addEventListener('keydown', maybeUnlockAudio, {capture:true});
+    updateMusicButtons();
+    // Attempt ambient menu playback immediately; on most browsers it begins
+    // after the first interaction because audible autoplay is restricted.
+    switchMusic('landing', 1100);
+
     // 2. Slowed-Down Sparkling Stars & Tiny Meteorite Dots Canvas
     const spaceCanvas = document.getElementById('spaceCanvas');
     const spaceCtx = spaceCanvas.getContext('2d');
@@ -204,6 +297,8 @@
     function navigateTo(nextScene) {
       if (isTransitioning || nextScene === currentScene) return;
       isTransitioning = true;
+      // Crossfade music to the destination's soundtrack during the warp.
+      switchMusic(nextScene, 1080);
       const previous = currentScene;
       const from = scenes[previous];
       const to = scenes[nextScene];

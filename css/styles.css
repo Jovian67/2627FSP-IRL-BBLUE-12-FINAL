@@ -782,3 +782,68 @@
       .jovian-sway{animation:none;}
       .jovian-reveal.growing{animation:none;}
     }
+
+
+/* =====================================================================
+   SONIONS 2: Soft title readability veil, fades into transparent edges
+   ===================================================================== */
+#landingView .title-veil {
+  position:relative;
+  isolation:isolate;
+  display:block;
+  max-width:100%;
+  padding: clamp(1.4rem, 2.5vw, 2.2rem) clamp(2rem, 5vw, 5rem);
+  margin: -0.65rem auto 1.75rem;
+  transition:opacity .65s ease, transform .7s ease, filter .65s ease;
+}
+#landingView .title-veil::before {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:-12% -7%;
+  pointer-events:none;
+  border-radius: 26px;
+  /* Mostly transparent black under the letters, gradually 100% transparent
+     beyond their area. The extra-wide feather removes visible box edges. */
+  background: rgba(0,0,0,.60);
+  -webkit-mask-image: radial-gradient(ellipse 76% 79% at center, black 36%, rgba(0,0,0,.95) 51%, rgba(0,0,0,.55) 74%, transparent 100%);
+  mask-image: radial-gradient(ellipse 76% 79% at center, black 36%, rgba(0,0,0,.95) 51%, rgba(0,0,0,.55) 74%, transparent 100%);
+  animation: veilBreathe 12s ease-in-out infinite alternate;
+}
+#landingView .title-veil .headline { margin:0; position:relative; }
+#landingView.scene-exiting .title-veil {
+  opacity:0;
+  transform:scale(.87) translateY(-12px);
+  filter:blur(7px);
+}
+@keyframes veilBreathe { from{opacity:.87;} to{opacity:1;} }
+
+/* Mute/unmute button, present on each of the three screens. */
+.music-toggle {
+  display:inline-flex;align-items:center;justify-content:center;gap:.4rem;
+  background:rgba(255,255,255,.07);color:rgba(255,255,255,.88);
+  border:1px solid rgba(255,255,255,.2);border-radius:999px;
+  cursor:pointer;padding:.43rem .8rem;white-space:nowrap;
+  font:500 .75rem/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  transition:background .2s, border-color .2s,color .2s;
+}
+.music-toggle:hover { background:rgba(255,255,255,.15); border-color:rgba(255,255,255,.45); }
+.music-toggle:focus-visible { outline:2px solid white;outline-offset:3px; }
+.music-note {font-size:.96rem;line-height:1;}
+.music-toggle.music-off {color:rgba(255,255,255,.48);}
+.music-toggle.music-on {border-color:rgba(203,184,244,.34);}
+@media(max-width:700px) {
+  #landingView .title-veil {padding:1.4rem .35rem;margin-bottom:1.2rem;}
+  #landingView .title-veil::before{inset:-12% -2%;}
+  .music-toggle {padding:.42rem .6rem;}
+  .music-status{display:none;}
+}
+@media(prefers-reduced-motion:reduce) {
+  #landingView .title-veil::before {animation:none;opacity:1;}
+}
+
+@media(max-width:650px) {
+  #creatorsView .navbar{flex-wrap:wrap;gap:.5rem;justify-content:center;}
+  #creatorsView .creator-tabs{order:3;justify-content:center;width:100%;}
+  #creatorsView .creator-tab-btn{padding:.37rem .72rem;}
+}
