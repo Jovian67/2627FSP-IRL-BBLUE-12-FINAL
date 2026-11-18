@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jovian Clicker — Sonions™</title>
+  <title>Jovian Clicker</title>
 
   <!-- Import Instrument Serif from Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,6 +29,11 @@
     <source src="https://designerstephen.github.io/public-assets/videos/observe-hero.mp4" type="video/mp4">
   </video>
 
+  <!-- Looping soundtrack: menu & Creators use audio 1; gameplay uses audio 2.
+       Browser autoplay policies may require one interaction to enable sound. -->
+  <audio id="menuMusic" src="assets/audio-1.mp3" preload="auto" loop></audio>
+  <audio id="gameMusic" src="assets/audio-2.mp3" preload="auto" loop></audio>
+
   <!-- 2. Slowed-Down Space & Meteorites Canvas (Creators Page Background) -->
   <canvas id="spaceCanvas"></canvas>
 
@@ -45,13 +50,14 @@
     <header class="navbar liquid-glass liquid-glass-pill">
       <div class="brand-logo">Sonions™</div>
       <div class="nav-actions">
+        <button type="button" class="music-toggle" onclick="toggleMusic()" aria-label="Enable background music" aria-pressed="false"><span class="music-note" aria-hidden="true">♫</span><span class="music-status">Enable music</span></button>
         <button class="creators-btn" onclick="transitionToCreators()">Creators</button>
         <button type="button" class="nav-link nav-plain" onclick="openInstructions()">How to play</button>
       </div>
     </header>
 
     <section class="hero-content">
-      <h1 class="headline">Jovian <em>Clicker.</em></h1>
+      <div class="title-veil"><h1 class="headline">Jovian <em>Clicker</em></h1></div>
 
       <form class="waitlist-form liquid-glass liquid-glass-pill" id="playForm" onsubmit="event.preventDefault(); transitionToGame();">
         <input
@@ -78,6 +84,7 @@
       <div class="brand-logo">Sonions™</div>
       <span class="game-nav-meta">THE SINGULARITY IS HUNGRY</span>
       <div class="nav-actions">
+        <button type="button" class="music-toggle" onclick="toggleMusic()" aria-label="Enable background music" aria-pressed="false"><span class="music-note" aria-hidden="true">♫</span><span class="music-status">Enable music</span></button>
         <button type="button" class="nav-link nav-plain" onclick="transitionToCreators()">Creators</button>
         <button type="button" class="creators-btn" onclick="transitionToLanding()">Back to Home</button>
       </div>
@@ -161,6 +168,7 @@
         </button>
       </div>
 
+      <button type="button" class="music-toggle" onclick="toggleMusic()" aria-label="Enable background music" aria-pressed="false"><span class="music-note" aria-hidden="true">♫</span><span class="music-status">Enable music</span></button>
       <button class="creators-btn" onclick="transitionToLanding()">Back to Home</button>
     </header>
 
